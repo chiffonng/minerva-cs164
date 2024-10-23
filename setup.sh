@@ -45,3 +45,5 @@ jupyter kernelspec install --user "$(sage -sh -c "ls -d $SAGE_VENV/share/jupyter
 # Or start Jupyter notebook with sage kernel
 # sage -n jupyter
 # Troubleshooting: https://doc.sagemath.org/html/en/installation/launching.html
+
+mkdir -p logs
