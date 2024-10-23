@@ -1,0 +1,16 @@
+# notebooks
+notebooks/
+*.ipynb
+
+# markdown
+md/
+*.md
+!README.md
+
+# TeX
+tex/
+*.tex*
+
+# PDF
+pdf/
+*.pdf
