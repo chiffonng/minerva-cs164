@@ -28,9 +28,9 @@ For Sage setup, refer to [this](https://doc.sagemath.org/html/en/installation/la
 jupytext --to notebook "markdown file.md"
 ```
 
-## Lint and format
+## Before commits
 
 ```bash
-ruff format
-ruff check --fix
+pre-commit install
+pre-commit run --all-files
 ```
