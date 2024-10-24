@@ -11,7 +11,9 @@ from autograd import grad
 from numpy.typing import ArrayLike
 
 
-def bisection_method(f: Callable, a: float, b: float, eps: float = 1e-8) -> tuple[float, float]:
+def bisection_method(
+    f: Callable, a: float, b: float, eps: float = 1e-8
+) -> tuple[float, float]:
     """Bisection method to find the minimum of function f within the interval [a, b].
 
     Inputs:
@@ -25,7 +27,7 @@ def bisection_method(f: Callable, a: float, b: float, eps: float = 1e-8) -> tupl
     """
     if a >= b:
         a, b = b, a
-    
+
     grad_f = grad(f)
 
     # If either f'(a) or f'(b) doesn't meet conditions, expand the interval
@@ -101,7 +103,7 @@ def backtracking_line_search(
     """
     grad_f = grad(f)
     if d is None:
-        d = -grad_f(x_i) / np.linalg.norm(grad_f(x_i)) # Steepest descent direction
+        d = -grad_f(x_i) / np.linalg.norm(grad_f(x_i))  # Steepest descent direction
 
     while f(x_i + alpha * d) > f(x_i) + c * alpha * np.dot(grad_f(x_i), d):
         alpha *= p  # Reduce alpha by factor p
@@ -111,6 +113,7 @@ def backtracking_line_search(
 
 def f(x):
     return x[0] ** 2 + x[1] ** 2
+
 
 x_i = np.array([2, 1])
 
