@@ -1,5 +1,4 @@
 import autograd.numpy as np
-from autoograd import grad, hess
 
 
 def is_positive_definite(matrix: np.ndarray) -> bool:
