@@ -1,8 +1,8 @@
 # Minerva CS164 Optimization Methods
 
-This repository contains the code for the course CS164 Optimization Methods at Minerva University, and some utilities for the course. Code is written in Python and SageMath (optionally).
+This repository contains the code for the course CS164 Optimization Methods at Minerva University, and some utilities for the course. Code is written in Python and SageMath (optionally). In the course, I learned the math and rewrote some of the algorithms used in [scipy.optimize](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html) for educational purposes.
 
-Notes: I'm still taking the course, so some of the code may be incorrect, incomplete, not optimized, or not working. I'll update the code as I progress through the course.
+_Notes_: I'm still taking the course, so some of the code may be incorrect, incomplete, not optimized, or not working. I'll update the code as I progress through the course.
 
 ## Setup
 
@@ -20,7 +20,7 @@ pip list --format=freeze > requirements.txt
 
 For Sage setup, refer to [this](https://doc.sagemath.org/html/en/installation/launching.html#setting-up-sagemath-as-a-jupyter-kernel-in-an-existing-jupyter-notebook-or-jupyterlab-installation)
 
-TODO: Remove SageMath dependency
+- [ ] TODO: Remove SageMath dependency
 
 ## Convert markdown to notebook
 
