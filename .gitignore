@@ -12,7 +12,8 @@ md/
 
 # TeX
 tex/
-*.tex*
+!tex/*.pdf
+*minted*
 
 # PDF
 pdf/

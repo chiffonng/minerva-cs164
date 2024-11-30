@@ -15,5 +15,5 @@ dependencies = [
 
 # optional dependencies
 [project.optional-dependencies]
-tex   = ["pygments", "latexminted"]
+tex   = ["latexminted"]
 ipynb = ["ipykernel"]
