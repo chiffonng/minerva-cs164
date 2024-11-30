@@ -1,19 +1,20 @@
-"""Module for descent methods, including gradient descent, noisy gradient descent, momentum gradient descent, conjugate gradient descent
+"""Module of methods to minimize unconstrained functions, including gradient descent, noisy gradient descent, momentum gradient descent, conjugate gradient descent
 
 1. gradient_descent: Gradient descent optimization algorithm.
 2. noisy_gradient_descent: Noisy gradient descent optimization algorithm.
 3. momentum_gradient_descent: Momentum gradient descent optimization algorithm.
 4. conjugate_gradient_descent: Conjugate gradient descent optimization algorithm.
-5. plot_steps: Plot the steps taken by the optimization algorithm on a contour plot of the function.
+5. newton_method: Newton-Raphson method to find the solution for f'(x) = 0.
+6. plot_steps: Plot the steps taken by the optimization algorithm on a contour plot of the function.
 """
 
 from collections.abc import Callable
-from enum import StrEnum, auto, IntEnum
+from enum import StrEnum, auto
 import logging
 
 import autograd.numpy as np
 import matplotlib.pyplot as plt
-from autograd import grad
+from autograd import grad, hess
 from numpy.typing import ArrayLike
 from matplotlib.axes import Axes
 
@@ -31,11 +32,11 @@ class StepSize(StrEnum):
     SHRINKING = auto()
 
 
-class TerminationCondition(IntEnum):
-    ABSOLUTE_IMPROVEMENT = auto()
-    RELATIVE_IMPROVEMENT = auto()
-    GRAD_NORM = auto()
-    MAX_ITERATIONS = auto()
+class TerminationCondition(StrEnum):
+    ABSOLUTE_IMPROVEMENT = "absolute improvement"
+    RELATIVE_IMPROVEMENT = "relative improvement"
+    GRAD_NORM = "grad norm"
+    MAX_ITERATIONS = "max iterations"
 
 
 def _validate_inputs(func, tol, max_iter, step_size):
@@ -89,7 +90,7 @@ def check_termination(termination_conditions, i, x_i, d_i, x_next, tol, max_iter
             return True
 
     if TerminationCondition.RELATIVE_IMPROVEMENT in termination_conditions:
-        if np.linalg.norm(x_next - x_i) < tol * max(np.linalg.norm(x_i), 1e-8):
+        if np.linalg.norm(x_next - x_i) < tol * max(np.linalg.norm(x_i), tol):
             return True
 
     if TerminationCondition.MAX_ITERATIONS in termination_conditions and i >= max_iter:
@@ -148,6 +149,10 @@ def gradient_descent(
             )
             step_strategy = step_size if isinstance(step_size, str) else step_size.value
 
+            if step_size == StepSize.FIXED:
+                logger.info(
+                    f"Gradient descent \t {x_next} \t {x0} \t {step_strategy} ({initial_alpha}) \t {termination_conditions_str} \t {tol} \t {i}"
+                )
             logger.info(
                 f"Gradient descent \t {x_next} \t {x0} \t {step_strategy} \t {termination_conditions_str} \t {tol} \t {i}"
             )
@@ -187,6 +192,7 @@ def noisy_gradient_descent(
         steps: list of array-like. Steps taken by the algorithm.
         num_steps: int. Number of steps taken.
     """
+    # TODO: Review the implementation of noisy gradient descent
     _validate_inputs(func, tol, max_iter, step_size)
 
     x_i = np.array(x0)
@@ -212,6 +218,10 @@ def noisy_gradient_descent(
             )
             step_strategy = step_size if isinstance(step_size, str) else step_size.value
 
+            if step_size == StepSize.FIXED:
+                logger.info(
+                    f"Noisy gradient descent \t {x_next} \t {x0} \t {step_strategy} ({initial_alpha}) \t {termination_conditions_str} \t {tol} \t {i}"
+                )
             logger.info(
                 f"Noisy gradient descent \t {x_next} \t {x0} \t {step_strategy} \t {termination_conditions_str} \t {tol} \t {i}"
             )
@@ -223,19 +233,21 @@ def noisy_gradient_descent(
         x_i = x_next
 
 
-def momentum_gradient_descent():
-    raise NotImplementedError
-
-
-def conjugate_gradient(
-    f: Callable, x0: ArrayLike, tol: float = 1e-7, max_iter: int = 1000
+def momentum_gradient_descent(
+    f: Callable,
+    x0: ArrayLike,
+    beta: float = 0.9,
+    alpha: float = 0.01,
+    tol: float = 1e-7,
+    max_iter: int = 100,
 ):
-    """Conjugate Gradient method to minimize a function using the Fletcher-Reeves formula. 
+    """Momentum gradient descent optimization algorithm.
 
     Args:
         f: The objective function to minimize.
-        grad_f: The gradient of the function.
         x0: Initial guess for the variables.
+        beta: Momentum term.
+        alpha: Fixed step size (learning rate).
         tol: Tolerance for convergence.
         max_iter: Maximum number of iterations.
 
@@ -243,6 +255,64 @@ def conjugate_gradient(
         x: The optimal solution found.
         num_iter: The number of iterations performed.
     """
+    # TODO: Review the implementation of momentum gradient descent
+
+    x_i = np.array(x0, dtype=float)
+    steps = [x_i.copy()]
+
+    # Compute the initial search direction
+    grad_f = grad(f)
+    g_i = grad_f(x_i)
+    v_i = -g_i  # Velocity term
+
+    i = 0
+    while np.linalg.norm(g_i) > tol and i < max_iter:
+        # Update the current point
+        x_i = x_i + alpha * v_i
+        steps.append(x_i.copy())
+
+        # Update the velocity term v_i
+        g_i = grad_f(x_i)
+        v_i = beta * v_i - alpha * g_i
+
+        i += 1
+
+    logger.info(f"Momentum gradient descent \t {x_i} \t {x0} \t {tol} \t {i}")
+    return x_i, steps, i
+
+
+def conjugate_gradient(
+    f: Callable,
+    x0: ArrayLike,
+    step_size: StepSize | str = StepSize.INEXACT,
+    termination_conditions: list[TerminationCondition] = [
+        TerminationCondition.GRAD_NORM,
+        TerminationCondition.MAX_ITERATIONS,
+    ],
+    tol: float = 1e-7,
+    max_iter: int = 10,
+) -> tuple[ArrayLike, list[ArrayLike], int]:
+    """Conjugate Gradient method to minimize a function using the Fletcher-Reeves formula.
+
+    Args:
+        f: The objective function to minimize.
+        grad_f: The gradient of the function.
+        x0: Initial guess for the variables.
+        step_size: Step size strategy. Valid values are from the StepSize Enum, including 'fixed', 'inexact', 'exact', 'shrinking'.
+        termination_conditions: Conditions to stop the optimization.
+        tol: Tolerance for convergence.
+        max_iter: Maximum number of iterations.
+
+    Returns:
+        x_next: The optimal solution found.
+        steps: The steps taken by the algorithm.
+        i: The number of iterations performed.
+    """
+    if step_size == StepSize.FIXED or step_size not in [e.value for e in StepSize]:
+        raise ValueError(
+            "Conjugate gradient requires a line search strategy to find the step size"
+        )
+
     x_i = np.array(x0, dtype=float)
     steps = [x_i.copy()]
 
@@ -250,16 +320,32 @@ def conjugate_gradient(
     grad_f = grad(f)
     g_i = grad_f(x_i)
     d_i = -g_i
-    g_prev = g_i
+    g_prev = g_i.copy()
 
     i = 0
-    while np.linalg.norm(g_i) > tol and i < max_iter:
+    while True:
         # Perform a line search to find the step size alpha
-        alpha = backtracking_line_search(f, x_i, d_i)
+        alpha = choose_step_size(f, step_size, 0.01, x_i, d_i, i)
 
-        # Update the current point
-        x_i = x_i + alpha * d_i
-        steps.append(x_i.copy())
+        # Calculate the next point
+        x_next = x_i + alpha * d_i
+
+        if check_termination(
+            termination_conditions, i, x_i, d_i, x_next, tol, max_iter
+        ):
+            # Log experiment conditions and results to a file
+            termination_conditions_str = ", ".join(
+                [tc.value for tc in termination_conditions]
+            )
+            step_strategy = step_size if isinstance(step_size, str) else step_size.value
+
+            logger.info(
+                f"Conjugate gradient \t {x_next} \t {x0} \t {step_strategy} \t {termination_conditions_str} \t {tol} \t {i}"
+            )
+
+            return x_next, steps, i
+
+        steps.append(x_next.copy())
 
         # Update beta using the Fletcher-Reeves formula
         # beta_i = (g_i^T g_i) / (g_{i-1}^T g_{i-1})
@@ -271,12 +357,22 @@ def conjugate_gradient(
 
         # Update g_prev and next iteration
         g_prev = g_i
+        x_i = x_next
         i += 1
 
     return x_i, steps, i
 
 
-def newton_method_minimize(func, x0, tol=1e-7, max_iter=100):
+def newton_method(
+    func: Callable,
+    x0: ArrayLike,
+    termination_conditions: list[TerminationCondition] = [
+        TerminationCondition.GRAD_NORM,
+        TerminationCondition.MAX_ITERATIONS,
+    ],
+    tol: float = 1e-7,
+    max_iter: int = 100,
+):
     """Minimize a function using Newton-Raphson method."""
     x_prev = np.array(x0)
     gradient = grad(func)
@@ -284,7 +380,8 @@ def newton_method_minimize(func, x0, tol=1e-7, max_iter=100):
 
     steps = [x_prev.copy()]  # Store steps for plotting
 
-    for i in range(max_iter):
+    i = 0
+    while True:
         grad_x_prev = gradient(x_prev)
         hess_x_prev = hessian(x_prev)
 
@@ -292,13 +389,17 @@ def newton_method_minimize(func, x0, tol=1e-7, max_iter=100):
             raise ValueError("Hessian is singular. No solution found.")
 
         x_next = x_prev - np.linalg.inv(hess_x_prev).dot(grad_x_prev)
-        steps.append(x_prev.copy())
 
         # Terminate if the norm of the gradient is less than the tolerance
-        if np.linalg.norm(x_next - x_prev) < tol:
-            steps.append(x_next.copy())
+        if check_termination(
+            termination_conditions, i, x_prev, grad_x_prev, x_next, tol, max_iter
+        ):
+            logger.info(f"Newton method \t {x_next} \t {x0} \t N/A \t {tol} \t {i}")
             return x_next, steps, i  # Return the steps taken to the minimum
 
+        # Update for next iteration
+        i += 1
+        steps.append(x_next.copy())
         x_prev = x_next
 
     return x_next, steps, i  # Return the steps even if not converged

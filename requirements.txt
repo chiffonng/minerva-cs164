@@ -1,3 +1,5 @@
 autograd==1.7.0
+cvxpy
+pandas==2.2.3
 pre-commit
 ruff
