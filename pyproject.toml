@@ -5,15 +5,31 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-  "cvxpy>=1.6.0",
+  "cvxpy",
   "numpy>=2.0.2",
   "matplotlib>=3.9.2",
   "autograd>=1.7.0",
   "ruff>=0.7.0",
   "scipy>=1.13.0",
+  "pandas>=2.2.3",
+  "jupyter>=1.1.1",
 ]
 
-# optional dependencies
-[project.optional-dependencies]
-tex   = ["latexminted"]
-ipynb = ["ipykernel"]
+[tool.ruff]
+src            = ["src", "notebooks"]
+target-version = "py311"
+extend-exclude = ["*__init__.py", "*.pyi", "setup.py"]
+
+[tool.ruff.format]
+docstring-code-format      = true # format code in docstrings
+docstring-code-line-length = 88
+
+[tool.ruff.lint]
+extend-select = [
+  # "D", # pydocstyle, all functions and classes must have docstrings
+  # "T", # mypy, type hints
+]
+extend-fixable = ["D"]
+ignore = ["T201"] # print statements OK
+pydocstyle.convention = "google"
+pycodestyle.max-doc-length = 88
