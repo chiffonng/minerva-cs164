@@ -30,19 +30,20 @@ The course is taught by Prof John Levitt and roughly follows the textbook [Koche
 - Session 18: Integer programming: branch and bound
 - Session 19: Mixed integer programming
 - Session 20: Quadratic programming
+- Session 21: LMIs 
+- Session 22: Semindefinite programming
+- Session 23: Newton's method for linear equality constraints
+- Session 24: Barrier methods
+- Session 25: Review
 
 ## Setup
 
-Have `conda` installed. Run the following command in terminal to create the `conda` virtual environment with the required packages:
+Run the following command in terminal to create the `.venv` virtual environment with the required packages:
 
 ```bash
-bash setup.sh
-```
-
-To export the `conda` environment to `requirements.txt`:
-
-```bash
-pip list --format=freeze > requirements.txt
+uv venv
+source .venv/bin/activate
+uv install
 ```
 
 For Sage setup, refer to [this](https://doc.sagemath.org/html/en/installation/launching.html#setting-up-sagemath-as-a-jupyter-kernel-in-an-existing-jupyter-notebook-or-jupyterlab-installation)

@@ -397,7 +397,6 @@ source = { virtual = "." }
 dependencies = [
     { name = "autograd" },
     { name = "cvxpy" },
-    { name = "ipython" },
     { name = "jupyter" },
     { name = "matplotlib" },
     { name = "numpy" },
@@ -410,7 +409,6 @@ dependencies = [
 requires-dist = [
     { name = "autograd", specifier = ">=1.7.0" },
     { name = "cvxpy" },
-    { name = "ipython", specifier = ">=8.30.0" },
     { name = "jupyter", specifier = ">=1.1.1" },
     { name = "matplotlib", specifier = ">=3.9.2" },
     { name = "numpy", specifier = ">=2.0.2" },
